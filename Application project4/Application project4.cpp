@@ -1,11 +1,9 @@
-    // Application project4.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <string>
-
+#include <Windows.h>
 
 struct Task {
     std::string description;
@@ -64,15 +62,35 @@ void deleteTask(std::vector<Task>& tasks) {
 
 void saveTasks(const std::vector<Task>& tasks, const std::string& filename) {
     std::ofstream outFile(filename);
-        for (const auto& task : tasks) {
+    if (!outFile) {
+        std::cerr << "Error opening file for saving tasks!" << std::endl;
+        return;
+    }
+    
+    
+    
+    for (const auto& task : tasks) {
             outFile << task.description << "|" << task.isCompleted << "\n";
         }
         outFile.close();
         std::cout << "Tasks saved!" << std::endl;
+
+
+        char buffer[MAX_PATH];
+        if (GetCurrentDirectoryA(MAX_PATH, buffer)) {
+            std::cout << "Task file saved at: " << buffer << "\\" << filename << std::endl; 
+        }
+        else {
+            std::cerr << "Error getting the current directory." << std::endl;
+        }
 }
 
 void loadTasks(std::vector<Task>& tasks, const std::string& filename) {
-    std::ifstream inFile(filename);
+    std::ifstream inFile(filename);  
+    if (!inFile) {
+        std::cout << "No existing task file found. Starting fresh." << std::endl;
+        return;  
+    }
     std::string line;
     while (std::getline(inFile, line)) {
         Task task;
@@ -94,8 +112,8 @@ void showMenu() {
     std::cout << "6. Exit\n";
 }
 
-int main() {
-    std::vector<Task> tasks;
+    int main() {
+        std::vector<Task> tasks;
     std::string filename = "tasks.txt";
 
     loadTasks(tasks, filename);
@@ -123,7 +141,8 @@ int main() {
             saveTasks(tasks, filename);
             break;
         case 6:
-            std::cout << "Exiting program. Goodbye!" << std::endl;
+            std::cout << "Exiting program. Saving tasks..." << std::endl;
+            saveTasks(tasks, filename);
             break;
         default:
             std::cout << "Invalid choice. Try again." << std::endl;
